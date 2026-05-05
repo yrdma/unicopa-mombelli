@@ -51,7 +51,7 @@
     SWE: require("../assets/jogos/sweden.png"),
     TUN: require("../assets/jogos/tunisia.png"),
     TUR: require("../assets/jogos/turkey.png"),
-   
+    UZB: require("../assets/jogos/uzbekistan.png"),
     URU: require("../assets/jogos/uruguay.png"),
     USA: require("../assets/jogos/united states.png"),
 };
