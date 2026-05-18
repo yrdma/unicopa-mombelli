@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View, Image, ImageBackground, SectionList } from 'react-native'
 import dados from './assets/dados.json'
 import { formatarData } from './utils/DateFormat.js'
-import DiaCard from './components/DiaCard'
+import DiaCard from './components/DiaCard.jsx'
 
 export default function App() {
 

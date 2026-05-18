@@ -7,6 +7,8 @@ export default function DiaCard({ data, jogos }) {
     
     const hoje = formatarData(new Date())
     const isDataAtual = data === hoje
+    
+
 
     return (
         <View style={[styles.card, isDataAtual && styles.jogoDeHoje]}>
