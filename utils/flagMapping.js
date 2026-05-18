@@ -1,6 +1,4 @@
-
- export const Flags = {
-    
+export const TEAM_FLAGS = {
     ALG: require("../assets/jogos/Algeria.png"),
     ARG: require("../assets/jogos/argentina.png"),
     AUS: require("../assets/jogos/australia.png"),
@@ -54,4 +52,4 @@
     UZB: require("../assets/jogos/uzbekistan.png"),
     URU: require("../assets/jogos/uruguay.png"),
     USA: require("../assets/jogos/united states.png"),
-};
+}
