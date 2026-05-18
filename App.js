@@ -1,12 +1,19 @@
-import { StyleSheet, Text, View, Image, ImageBackground, SectionList } from 'react-native'
+import { StyleSheet, Text, View, Image, ImageBackground, SectionList, TouchableOpacity, } from 'react-native'
 import dados from './assets/dados.json'
 import { formatarData } from './utils/DateFormat.js'
 import DiaCard from './components/DiaCard.jsx'
+import { useState } from 'react'
 
 export default function App() {
-
   const jogos = dados.jogos
-  const hoje = formatarData(new Date())
+  const [grupoSelecionado, setGrupoSelecionado] = useState('TODOS')
+
+  const grupos = ['TODOS', ...new Set(jogos.map(jogo => jogo.grupo))]
+
+  const jogosFiltrados =
+    grupoSelecionado === 'TODOS'
+      ? jogos
+      : jogos.filter(jogo => jogo.grupo === grupoSelecionado)
 
   const agruparPorData = (jogos) => {
     return jogos.reduce((acc, jogo) => {
@@ -24,7 +31,7 @@ export default function App() {
     }, {})
   }
 
-  const jogosOrdenados = [...jogos].sort((a, b) => {
+  const jogosOrdenados = [...jogosFiltrados].sort((a, b) => {
     return (
       new Date(`${a.data_brasilia} ${a.hora_brasilia}`) - new Date(`${b.data_brasilia} ${b.hora_brasilia}`)
     )
@@ -32,10 +39,10 @@ export default function App() {
 
   const jogosAgrupados = agruparPorData(jogosOrdenados)
 
-  const jogosTratados = Object.keys(jogosAgrupados).map(data => {
+  const jogosTratados = Object.keys(jogosAgrupados).map((data) => {
     return {
       title: data,
-      data: jogosAgrupados[data]
+      data: jogosAgrupados[data],
     }
   })
 
@@ -48,16 +55,37 @@ export default function App() {
 
       <Text style={styles.title}>CALENDÁRIO</Text>
 
+      <View style={styles.filtrosContainer}>
+        {grupos.map((grupo) => {
+          const ativo = grupoSelecionado === grupo
+
+          return (
+            <TouchableOpacity
+              key={grupo}
+              style={[ styles.botaoFiltro, ativo && styles.botaoFiltroAtivo]}
+              onPress={() => setGrupoSelecionado(grupo)}
+            >
+              <Text
+                style={[ styles.textoFiltro, ativo && styles.textoFiltroAtivo]}
+              >
+                {grupo}
+              </Text>
+            </TouchableOpacity>
+          )
+        })}
+      </View>
+
       <SectionList
         sections={jogosTratados}
         keyExtractor={(item) => item.id.toString()}
         renderItem={() => null}
         renderSectionHeader={({ section }) => (
-
-          <DiaCard data={section.title} jogos={section.data} />
+          <DiaCard
+            data={section.title}
+            jogos={section.data}
+          />
         )}
       />
-
     </ImageBackground>
   )
 }
@@ -80,6 +108,33 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: '700',
     color: 'white',
+  },
+  filtrosContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: 10,
+    marginTop: 20,
+    marginBottom: 10,
+    paddingHorizontal: 10,
+  },
+  botaoFiltro: {
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 20,
+    backgroundColor: '#0c1b2a',
+    borderWidth: 1,
+    borderColor: '#1e2d3d',
+  },
+  botaoFiltroAtivo: {
+    backgroundColor: '#f2cc2f',
+  },
+  textoFiltro: {
+    color: 'white',
+    fontWeight: '600',
+  },
+  textoFiltroAtivo: {
+    color: '#040b13',
   },
   card: {
     marginTop: 20,
