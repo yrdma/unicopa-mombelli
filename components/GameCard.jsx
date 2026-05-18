@@ -45,7 +45,7 @@ export default function GameCard({ game }) {
         </View>
 
         <View style={styles.horario}>
-          <Text style={styles.hora}>{game.hora_brasilia}</Text>
+          <Text style={styles.hora}>{game.hora_brasilia ? game.hora_brasilia.slice(0, 5) : ""}</Text>
           <Text style={styles.subTitulo}>VS</Text>
         </View>
 
@@ -116,5 +116,7 @@ const styles = StyleSheet.create({
   },
   jogoBrasil: {
     backgroundColor: "#16351f",
+    padding: 10,
+    borderRadius: 8,
   },
 })
