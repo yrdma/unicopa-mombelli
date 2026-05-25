@@ -1,48 +1,62 @@
-import { StyleSheet, Text, View, Image, ImageBackground, SectionList, TouchableOpacity, } from 'react-native'
-import dados from './assets/dados.json'
-import { formatarData } from './utils/DateFormat.js'
-import DiaCard from './components/DiaCard.jsx'
-import { useEffect, useState } from 'react'
-import { supabase } from './utils/supabase'
-
+import { StyleSheet, Text, View, Image, ImageBackground, SectionList, TouchableOpacity } from "react-native"
+import dados from "./assets/dados.json"
+import { formatarData } from "./utils/DateFormat.js"
+import DiaCard from "./components/DiaCard.jsx"
+import { useEffect, useState } from "react"
+import { supabase } from "./utils/supabase"
 
 export default function App() {
   const [jogos, setJogos] = useState([])
+  const [erroCarregamento, setErroCarregamento] = useState(false)
 
   useEffect(() => {
-    async function carregarJogos(){
+    async function carregarJogos() {
+      const { data, error } = await supabase.from("jogos").select("*").order("data_brasilia", { ascending: false })
 
-      const { data, error } = await supabase
-        .from('jogos')
-        .select('*')
-        .order('data_brasilia', { ascending: false })
-
-        if(!error){
-          setJogos(data)
-        }
-
+      if (!error) {
+        setJogos(data)
+      }else {
+        setErroCarregamento(true)
+      }
     }
 
     carregarJogos()
+
+    async function inserirUsuarios() {
+      const { data, error } = await supabase.from("usuarios").insert({
+        nome: "Taffe",
+        ra: "00000000",
+        email: "jerso.siyva@teste.com",
+        senha: "123456",
+        telefone: "00000000000",
+        data_nascimento: "2000-01-01",
+      })
+      if (!error) {
+        console.log("Usuário inserido com sucesso!")
+      } else {
+        console.error("Erro ao inserir usuário:", error)
+      }
+    }
+    inserirUsuarios()
   }, [])
 
-  const [grupoSelecionado, setGrupoSelecionado] = useState('TODOS')
+  const [grupoSelecionado, setGrupoSelecionado] = useState("TODOS")
 
-  const grupos = ['TODOS', ...new Set(jogos.map(jogo => jogo.grupo))]
+  const grupos = ["TODOS", ...new Set(jogos.map((jogo) => jogo.grupo))]
   grupos.sort((a, b) => {
-    if (a === 'TODOS') return -1
-    if (b === 'TODOS') return 1
+    if (a === "TODOS") {
+      return -1
+    }
+    if (b === "TODOS") {
+      return 1
+    }
     return a.localeCompare(b)
   })
 
-  const jogosFiltrados =
-    grupoSelecionado === 'TODOS'
-      ? jogos
-      : jogos.filter(jogo => jogo.grupo === grupoSelecionado)
+  const jogosFiltrados = grupoSelecionado === "TODOS" ? jogos : jogos.filter((jogo) => jogo.grupo === grupoSelecionado)
 
   const agruparPorData = (jogos) => {
     return jogos.reduce((acc, jogo) => {
-
       const data = formatarData(jogo.data_brasilia)
 
       if (!acc[data]) {
@@ -52,13 +66,13 @@ export default function App() {
       acc[data].push(jogo)
 
       return acc
-
     }, {})
   }
 
   const jogosOrdenados = [...jogosFiltrados].sort((a, b) => {
     return (
-      new Date(`${a.data_brasilia} ${a.hora_brasilia}`) - new Date(`${b.data_brasilia} ${b.hora_brasilia}`)
+      new Date(`${a.data_brasilia} ${a.hora_brasilia}`) -
+      new Date(`${b.data_brasilia} ${b.hora_brasilia}`)
     )
   })
 
@@ -72,11 +86,11 @@ export default function App() {
   })
 
   return (
-    <ImageBackground style={styles.container}
-      source={require('./assets/bg-overlay.png')}>
-      <Image style={styles.logo}
-        source={require('./assets/unicopa.png')}
-      />
+    <ImageBackground
+      style={styles.container}
+      source={require("./assets/bg-overlay.png")}
+    >
+      <Image style={styles.logo} source={require("./assets/unicopa.png")} />
 
       <Text style={styles.title}>CALENDÁRIO</Text>
 
@@ -87,11 +101,11 @@ export default function App() {
           return (
             <TouchableOpacity
               key={grupo}
-              style={[ styles.botaoFiltro, ativo && styles.botaoFiltroAtivo]}
+              style={[styles.botaoFiltro, ativo && styles.botaoFiltroAtivo]}
               onPress={() => setGrupoSelecionado(grupo)}
             >
               <Text
-                style={[ styles.textoFiltro, ativo && styles.textoFiltroAtivo]}
+                style={[styles.textoFiltro, ativo && styles.textoFiltroAtivo]}
               >
                 {grupo}
               </Text>
@@ -99,45 +113,44 @@ export default function App() {
           )
         })}
       </View>
-
+    {erroCarregamento ? (
+      <Text style={styles.erro}>Erro ao carregar os jogos.</Text>
+    ) : (
       <SectionList
         sections={jogosTratados}
         keyExtractor={(item) => item.id.toString()}
         renderItem={() => null}
         renderSectionHeader={({ section }) => (
-          <DiaCard
-            data={section.title}
-            jogos={section.data}
-          />
+          <DiaCard data={section.title} jogos={section.data} />
         )}
-      />
+      />)}
     </ImageBackground>
   )
 }
 
 const styles = StyleSheet.create({
   container: {
-    height: '100%',
-    width: '100%',
-    backgroundColor: '#040b13',
-    alignItems: 'center',
+    height: "100%",
+    width: "100%",
+    backgroundColor: "#040b13",
+    alignItems: "center",
   },
   logo: {
     marginTop: 20,
     width: 200,
     height: 50,
-    resizeMode: 'contain'
+    resizeMode: "contain",
   },
   title: {
     marginTop: 10,
     fontSize: 28,
-    fontWeight: '700',
-    color: 'white',
+    fontWeight: "700",
+    color: "white",
   },
   filtrosContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "center",
     gap: 10,
     marginTop: 20,
     marginBottom: 10,
@@ -147,31 +160,37 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 14,
     borderRadius: 20,
-    backgroundColor: '#0c1b2a',
+    backgroundColor: "#0c1b2a",
     borderWidth: 1,
-    borderColor: '#1e2d3d',
+    borderColor: "#1e2d3d",
   },
   botaoFiltroAtivo: {
-    backgroundColor: '#f2cc2f',
+    backgroundColor: "#f2cc2f",
   },
   textoFiltro: {
-    color: 'white',
-    fontWeight: '600',
+    color: "white",
+    fontWeight: "600",
   },
   textoFiltroAtivo: {
-    color: '#040b13',
+    color: "#040b13",
   },
   card: {
     marginTop: 20,
-    backgroundColor: '#0c1b2a',
+    backgroundColor: "#0c1b2a",
     width: 320,
     borderRadius: 12,
     padding: 15,
   },
   data: {
-    color: '#f2cc2f',
+    color: "#f2cc2f",
     fontSize: 22,
-    fontWeight: 'bold',
-    marginBottom: 10
+    fontWeight: "bold",
+    marginBottom: 10,
+  },
+  erro: {
+    marginTop: 20,
+    color: "red",
+    fontSize: 16,
+    fontWeight: "600",
   },
 })
