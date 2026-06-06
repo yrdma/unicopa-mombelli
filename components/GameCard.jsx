@@ -1,22 +1,58 @@
 import { StyleSheet, Text, View, Image } from "react-native"
 import { TEAM_FLAGS } from "../utils/flagMapping"
 import { IconButton } from "react-native-paper"
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { supabase } from "../utils/supabase"
 
-export default function GameCard({ game }) {
+export default function GameCard({ game, userId }) {
   const timeCasa = TEAM_FLAGS[game.sigla_casa]
   const timeFora = TEAM_FLAGS[game.sigla_fora]
-  const [favoritos, setFavoritos] = useState([])
-  const isFavorito = favoritos.some((item) => item.id === game.id)
-
+  const [isFavorito, setIsFavorito] = useState(false)
   const isBrazil = game.sigla_casa === "BRA" || game.sigla_fora === "BRA"
 
-  function toggleFavorito() {
-    if (isFavorito) {
-      const novaLista = favoritos.filter((item) => item.id !== game.id)
-      setFavoritos(novaLista)
+  useEffect(() => {
+    if (userId && game.id) {
+      verificarFavorito()
+    }
+  }, [userId, game.id])
+
+  async function verificarFavorito() {
+    const { data, error } = await supabase
+      .from('favoritos')
+      .select('id')
+      .eq('id_usuario', userId)
+      .eq('id_jogo', game.id)
+      .maybeSingle() 
+
+    if (data) {
+      setIsFavorito(true)
+    }
+  }
+
+  async function toggleFavorito() {
+    const novoStatus = !isFavorito
+    setIsFavorito(novoStatus)
+
+    if (novoStatus) {
+      const { error } = await supabase
+        .from('favoritos')
+        .insert({ id_usuario: userId, id_jogo: game.id })
+      
+      if (error) {
+        console.error("Erro ao favoritar:", error)
+        setIsFavorito(!novoStatus)
+      }
     } else {
-      setFavoritos([...favoritos, game])
+      const { error } = await supabase
+        .from('favoritos')
+        .delete()
+        .eq('id_usuario', userId)
+        .eq('id_jogo', game.id)
+        
+      if (error) {
+        console.error("Erro ao desfavoritar:", error)
+        setIsFavorito(!novoStatus) 
+      }
     }
   }
   return (

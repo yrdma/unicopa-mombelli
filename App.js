@@ -9,7 +9,7 @@ export default function App() {
   const [jogos, setJogos] = useState([])
   const [erroCarregamento, setErroCarregamento] = useState(false)
 
-  useEffect(() => {
+useEffect(() => {
     async function carregarJogos() {
       const { data, error } = await supabase.from("jogos").select("*").order("data_brasilia", { ascending: false })
 
@@ -21,23 +21,6 @@ export default function App() {
     }
 
     carregarJogos()
-
-    async function inserirUsuarios() {
-      const { data, error } = await supabase.from("usuarios").insert({
-        nome: "Taffe",
-        ra: "00000000",
-        email: "jerso.siyva@teste.com",
-        senha: "123456",
-        telefone: "00000000000",
-        data_nascimento: "2000-01-01",
-      })
-      if (!error) {
-        console.log("Usuário inserido com sucesso!")
-      } else {
-        console.error("Erro ao inserir usuário:", error)
-      }
-    }
-    inserirUsuarios()
   }, [])
 
   const [grupoSelecionado, setGrupoSelecionado] = useState("TODOS")
