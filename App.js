@@ -1,15 +1,31 @@
 import { StyleSheet, Text, View, Image, ImageBackground, SectionList, TouchableOpacity } from "react-native"
-import dados from "./assets/dados.json"
+import { useEffect, useState } from "react"
 import { formatarData } from "./utils/DateFormat.js"
 import DiaCard from "./components/DiaCard.jsx"
-import { useEffect, useState } from "react"
 import { supabase } from "./utils/supabase"
+import Login from "./components/Login.jsx"
 
 export default function App() {
+  const [session, setSession] = useState(null)
   const [jogos, setJogos] = useState([])
   const [erroCarregamento, setErroCarregamento] = useState(false)
+  const [grupoSelecionado, setGrupoSelecionado] = useState("TODOS")
 
-useEffect(() => {
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session)
+    })
+
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session)
+    })
+
+    return () => {
+      authListener.subscription.unsubscribe()
+    }
+  }, [])
+
+  useEffect(() => {
     async function carregarJogos() {
       const { data, error } = await supabase.from("jogos").select("*").order("data_brasilia", { ascending: false })
 
@@ -20,10 +36,16 @@ useEffect(() => {
       }
     }
 
-    carregarJogos()
-  }, [])
+    if (session) {
+      carregarJogos()
+    }
+  }, [session])
 
-  const [grupoSelecionado, setGrupoSelecionado] = useState("TODOS")
+  if (!session) {
+    return <Login />
+  }
+
+  const userId = session.user.id
 
   const grupos = ["TODOS", ...new Set(jogos.map((jogo) => jogo.grupo))]
   grupos.sort((a, b) => {
@@ -35,6 +57,14 @@ useEffect(() => {
     }
     return a.localeCompare(b)
   })
+
+  async function handleLogout() {
+      const { error } = await supabase.auth.signOut()
+      
+      if (error) {
+          console.error("Erro ao fazer logout:", error.message)
+      }
+  }
 
   const jogosFiltrados = grupoSelecionado === "TODOS" ? jogos : jogos.filter((jogo) => jogo.grupo === grupoSelecionado)
 
@@ -96,17 +126,38 @@ useEffect(() => {
           )
         })}
       </View>
-    {erroCarregamento ? (
-      <Text style={styles.erro}>Erro ao carregar os jogos.</Text>
-    ) : (
-      <SectionList
-        sections={jogosTratados}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={() => null}
-        renderSectionHeader={({ section }) => (
-          <DiaCard data={section.title} jogos={section.data} />
-        )}
-      />)}
+      {erroCarregamento ? (
+        <Text style={styles.erro}>Erro ao carregar os jogos.</Text>
+      ) : (
+        <SectionList
+          sections={jogosTratados}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={() => null}
+          renderSectionHeader={({ section }) => (
+            <DiaCard 
+              data={section.title} 
+              jogos={section.data} 
+              userId={userId} 
+            />
+          )}
+        />
+      )}
+      <TouchableOpacity 
+      style={{
+          backgroundColor: "#ff6b6b",
+          padding: 15,
+          borderRadius: 8,
+          alignItems: "center",
+          marginTop: 30,
+          width: "90%",
+          alignSelf: "center"
+      }} 
+      onPress={handleLogout}
+  >
+      <Text style={{ color: "white", fontWeight: "bold", fontSize: 16 }}>
+          SAIR DA CONTA
+      </Text>
+  </TouchableOpacity>
     </ImageBackground>
   )
 }

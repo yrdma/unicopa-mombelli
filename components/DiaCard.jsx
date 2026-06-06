@@ -3,7 +3,7 @@ import { StyleSheet, Text, View } from 'react-native'
 import GameCard from './GameCard'
 import { formatarData } from '../utils/DateFormat.js'
 
-export default function DiaCard({ data, jogos }) {
+export default function DiaCard({ data, jogos, userId }) {
     
     const hoje = formatarData(new Date())
     const isDataAtual = data === hoje
@@ -17,7 +17,7 @@ export default function DiaCard({ data, jogos }) {
             </Text>
             {
                 jogos.map((jogo) => (
-                    <GameCard key={jogo.id} game={jogo} />
+                    <GameCard key={jogo.id} game={jogo} userId={userId} />
                 ))
             }
         </View>

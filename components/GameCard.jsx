@@ -18,10 +18,10 @@ export default function GameCard({ game, userId }) {
 
   async function verificarFavorito() {
     const { data, error } = await supabase
-      .from('favoritos')
-      .select('id')
-      .eq('id_usuario', userId)
-      .eq('id_jogo', game.id)
+      .from("favoritos")
+      .select("*")
+      .eq("id_usuario", userId)
+      .eq("id_jogo", game.id)
       .maybeSingle() 
 
     if (data) {
