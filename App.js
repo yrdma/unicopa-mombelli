@@ -4,13 +4,14 @@ import { formatarData } from "./utils/DateFormat.js"
 import DiaCard from "./components/DiaCard.jsx"
 import { supabase } from "./utils/supabase"
 import Login from "./components/Login.jsx"
+import Palpites from "./components/Palpites.jsx"
 
 export default function App() {
   const [session, setSession] = useState(null)
   const [jogos, setJogos] = useState([])
   const [erroCarregamento, setErroCarregamento] = useState(false)
   const [grupoSelecionado, setGrupoSelecionado] = useState("TODOS")
-
+  const [telaAtiva, setTelaAtiva] = useState("CALENDARIO")
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session)
@@ -31,7 +32,7 @@ export default function App() {
 
       if (!error) {
         setJogos(data)
-      }else {
+      } else {
         setErroCarregamento(true)
       }
     }
@@ -59,11 +60,11 @@ export default function App() {
   })
 
   async function handleLogout() {
-      const { error } = await supabase.auth.signOut()
+    const { error } = await supabase.auth.signOut()
       
-      if (error) {
-          console.error("Erro ao fazer logout:", error.message)
-      }
+    if (error) {
+      console.error("Erro ao fazer logout:", error.message)
+    }
   }
 
   const jogosFiltrados = grupoSelecionado === "TODOS" ? jogos : jogos.filter((jogo) => jogo.grupo === grupoSelecionado)
@@ -105,96 +106,130 @@ export default function App() {
     >
       <Image style={styles.logo} source={require("./assets/unicopa.png")} />
 
-      <Text style={styles.title}>CALENDÁRIO</Text>
+      <View style={styles.abasContainer}>
+        <TouchableOpacity 
+          style={[styles.abaBotao, telaAtiva === "CALENDARIO" && styles.abaBotaoAtiva]} 
+          onPress={() => setTelaAtiva("CALENDARIO")}
+        >
+          <Text style={[styles.abaTexto, telaAtiva === "CALENDARIO" && styles.abaTextoAtiva]}>CALENDÁRIO</Text>
+        </TouchableOpacity>
 
-      <View style={styles.filtrosContainer}>
-        {grupos.map((grupo) => {
-          const ativo = grupoSelecionado === grupo
+        <TouchableOpacity 
+          style={[styles.abaBotao, telaAtiva === "PALPITES" && styles.abaBotaoAtiva]} 
+          onPress={() => setTelaAtiva("PALPITES")}
+        >
+          <Text style={[styles.abaTexto, telaAtiva === "PALPITES" && styles.abaTextoAtiva]}>MEUS PALPITES</Text>
+        </TouchableOpacity>
+      </View>
 
-          return (
-            <TouchableOpacity
-              key={grupo}
-              style={[styles.botaoFiltro, ativo && styles.botaoFiltroAtivo]}
-              onPress={() => setGrupoSelecionado(grupo)}
-            >
+      {telaAtiva === "CALENDARIO" ? (
+        <>
+          <View style={styles.filtrosContainer}>
+            {grupos.map((grupo) => {
+              const ativo = grupoSelecionado === grupo
+
+              return (
+                <TouchableOpacity
+                  key={grupo}
+                  style={[styles.botaoFiltro, ativo && styles.botaoFiltroAtivo]}
+                  onPress={() => setGrupoSelecionado(grupo)}
+                >
               <Text
                 style={[styles.textoFiltro, ativo && styles.textoFiltroAtivo]}
               >
                 {grupo}
               </Text>
-            </TouchableOpacity>
-          )
-        })}
-      </View>
-      {erroCarregamento ? (
-        <Text style={styles.erro}>Erro ao carregar os jogos.</Text>
-      ) : (
-        <SectionList
-          sections={jogosTratados}
-          keyExtractor={(item) => item.id.toString()}
-          renderItem={() => null}
-          renderSectionHeader={({ section }) => (
+                </TouchableOpacity>
+              )
+            })}
+          </View>
+          {erroCarregamento ? (
+            <Text style={styles.erro}>Erro ao carregar os jogos.</Text>
+          ) : (
+            <SectionList
+              sections={jogosTratados}
+              keyExtractor={(item) => item.id.toString()}
+              renderItem={() => null}
+              renderSectionHeader={({ section }) => (
             <DiaCard 
               data={section.title} 
               jogos={section.data} 
               userId={userId} 
             />
+              )}
+            />
           )}
-        />
+        </>
+      ) : (
+        <Palpites userId={userId} />
       )}
+
       <TouchableOpacity 
-      style={{
-          backgroundColor: "#ff6b6b",
-          padding: 15,
-          borderRadius: 8,
-          alignItems: "center",
-          marginTop: 30,
-          width: "90%",
-          alignSelf: "center"
-      }} 
-      onPress={handleLogout}
-  >
-      <Text style={{ color: "white", fontWeight: "bold", fontSize: 16 }}>
-          SAIR DA CONTA
-      </Text>
-  </TouchableOpacity>
+        style={styles.botaoSair} 
+        onPress={handleLogout}
+      >
+        <Text style={{ color: "white", fontWeight: "bold", fontSize: 15 }}>SAIR DA CONTA</Text>
+      </TouchableOpacity>
     </ImageBackground>
   )
 }
 
 const styles = StyleSheet.create({
   container: {
-    height: "100%",
     width: "100%",
+    height: "100%",
     backgroundColor: "#040b13",
     alignItems: "center",
   },
   logo: {
+    width: 180,
+    height: 45,
     marginTop: 20,
-    width: 200,
-    height: 50,
     resizeMode: "contain",
   },
-  title: {
-    marginTop: 10,
-    fontSize: 28,
+  abasContainer: {
+    flexDirection: "row",
+    width: "90%",
+    marginTop: 15,
+    padding: 4,
+
+    backgroundColor: "#0c1b2a",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#1e2d3d",
+  },
+  abaBotao: {
+    flex: 1,
+    alignItems: "center",
+    paddingVertical: 10,
+    borderRadius: 6,
+  },
+  abaBotaoAtiva: {
+    backgroundColor: "#1e2d3d",
+  },
+  abaTexto: {
+    color: "#8fa3b8",
+    fontSize: 13,
     fontWeight: "700",
-    color: "white",
+  },
+  abaTextoAtiva: {
+    color: "#f2cc2f",
   },
   filtrosContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "center",
-    gap: 10,
-    marginTop: 20,
+
+    marginTop: 15,
     marginBottom: 10,
     paddingHorizontal: 10,
+    gap: 8,
   },
   botaoFiltro: {
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    borderRadius: 20,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
     backgroundColor: "#0c1b2a",
+    borderRadius: 20,
     borderWidth: 1,
     borderColor: "#1e2d3d",
   },
@@ -202,29 +237,29 @@ const styles = StyleSheet.create({
     backgroundColor: "#f2cc2f",
   },
   textoFiltro: {
-    color: "white",
+    color: "#ffffff",
+    fontSize: 13,
     fontWeight: "600",
   },
   textoFiltroAtivo: {
     color: "#040b13",
   },
-  card: {
-    marginTop: 20,
-    backgroundColor: "#0c1b2a",
-    width: 320,
-    borderRadius: 12,
-    padding: 15,
-  },
-  data: {
-    color: "#f2cc2f",
-    fontSize: 22,
-    fontWeight: "bold",
-    marginBottom: 10,
-  },
   erro: {
     marginTop: 20,
+
     color: "red",
     fontSize: 16,
     fontWeight: "600",
+  },
+  botaoSair: {
+    width: "90%",
+    alignSelf: "center",
+
+    marginVertical: 15,
+    padding: 12,
+
+    backgroundColor: "#ff6b6b",
+    borderRadius: 8,
+    alignItems: "center",
   },
 })
