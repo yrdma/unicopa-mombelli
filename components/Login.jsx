@@ -1,8 +1,10 @@
 import { useState } from "react"
 import { StyleSheet, Text, View, TextInput, TouchableOpacity, ActivityIndicator, ImageBackground, Image, KeyboardAvoidingView, Platform, ScrollView } from "react-native"
 import { supabase } from "../utils/supabase"
+import Registro from "./Cadastro"
 
 export default function Login() {
+    const [mostrarRegistro, setMostrarRegistro] = useState(false) 
     const [email, setEmail] = useState("")
     const [senha, setSenha] = useState("")
     const [loading, setLoading] = useState(false)
@@ -36,6 +38,10 @@ export default function Login() {
         }
 
         setLoading(false)
+    }
+
+    if (mostrarRegistro) {
+        return <Registro aoVoltar={() => setMostrarRegistro(false)} />
     }
 
     return (
@@ -89,6 +95,16 @@ export default function Login() {
                                 <Text style={styles.textoBotao}>ENTRAR</Text>
                             )}
                         </TouchableOpacity>
+
+                        <TouchableOpacity 
+                            style={styles.botaoVoltar} 
+                            onPress={() => setMostrarRegistro(true)}
+                        >
+                            <Text style={styles.textoBotaoVoltar}>
+                                Não tem uma conta? Cadastre-se
+                            </Text>
+                        </TouchableOpacity>
+
                     </View>
                 </ScrollView>
             </KeyboardAvoidingView>
@@ -161,6 +177,16 @@ const styles = StyleSheet.create({
         color: "#040b13",
         fontWeight: "bold",
         fontSize: 16,
+    },
+    botaoVoltar: {
+        marginTop: 20,
+        alignItems: "center",
+        padding: 10,
+    },
+    textoBotaoVoltar: {
+        color: "#8fa3b8",
+        fontSize: 15,
+        textDecorationLine: "underline",
     },
     textoErro: {
         color: "#ff6b6b",
