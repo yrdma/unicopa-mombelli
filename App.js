@@ -3,15 +3,17 @@ import { useEffect, useState } from "react"
 import { formatarData } from "./utils/DateFormat.js"
 import DiaCard from "./components/DiaCard.jsx"
 import { supabase } from "./utils/supabase"
-import Login from "./components/Login.jsx"
-import Palpites from "./components/Palpites.jsx"
+import Login from "./screens/Login.jsx"
+import Palpites from "./screens/Palpites.jsx"
+import MeusPalpites from "./screens/MeusPalpites.jsx"
 
 export default function App() {
   const [session, setSession] = useState(null)
   const [jogos, setJogos] = useState([])
   const [erroCarregamento, setErroCarregamento] = useState(false)
   const [grupoSelecionado, setGrupoSelecionado] = useState("TODOS")
-  const [telaAtiva, setTelaAtiva] = useState("CALENDARIO")
+  const [telaAtiva, setTelaAtiva] = useState("CALENDARIO") // CALENDARIO | PALPITES | HISTORICO
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session)
@@ -106,23 +108,32 @@ export default function App() {
     >
       <Image style={styles.logo} source={require("./assets/unicopa.png")} />
 
+      {/* abasContainer atualizado para 3 opções simétricas e responsivas */}
       <View style={styles.abasContainer}>
         <TouchableOpacity 
           style={[styles.abaBotao, telaAtiva === "CALENDARIO" && styles.abaBotaoAtiva]} 
           onPress={() => setTelaAtiva("CALENDARIO")}
         >
-          <Text style={[styles.abaTexto, telaAtiva === "CALENDARIO" && styles.abaTextoAtiva]}>CALENDÁRIO</Text>
+          <Text style={[styles.abaTexto, telaAtiva === "CALENDARIO" && styles.abaTextoAtiva]}>JOGOS</Text>
         </TouchableOpacity>
 
         <TouchableOpacity 
           style={[styles.abaBotao, telaAtiva === "PALPITES" && styles.abaBotaoAtiva]} 
           onPress={() => setTelaAtiva("PALPITES")}
         >
-          <Text style={[styles.abaTexto, telaAtiva === "PALPITES" && styles.abaTextoAtiva]}>MEUS PALPITES</Text>
+          <Text style={[styles.abaTexto, telaAtiva === "PALPITES" && styles.abaTextoAtiva]}>PALPITAR</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          style={[styles.abaBotao, telaAtiva === "HISTORICO" && styles.abaBotaoAtiva]} 
+          onPress={() => setTelaAtiva("HISTORICO")}
+        >
+          <Text style={[styles.abaTexto, telaAtiva === "HISTORICO" && styles.abaTextoAtiva]}>MEUS PALPITES</Text>
         </TouchableOpacity>
       </View>
 
-      {telaAtiva === "CALENDARIO" ? (
+      {/* Renderização Condicional das Telas baseada no estado ativo */}
+      {telaAtiva === "CALENDARIO" && (
         <>
           <View style={styles.filtrosContainer}>
             {grupos.map((grupo) => {
@@ -134,11 +145,11 @@ export default function App() {
                   style={[styles.botaoFiltro, ativo && styles.botaoFiltroAtivo]}
                   onPress={() => setGrupoSelecionado(grupo)}
                 >
-              <Text
-                style={[styles.textoFiltro, ativo && styles.textoFiltroAtivo]}
-              >
-                {grupo}
-              </Text>
+                  <Text
+                    style={[styles.textoFiltro, ativo && styles.textoFiltroAtivo]}
+                  >
+                    {grupo}
+                  </Text>
                 </TouchableOpacity>
               )
             })}
@@ -151,17 +162,23 @@ export default function App() {
               keyExtractor={(item) => item.id.toString()}
               renderItem={() => null}
               renderSectionHeader={({ section }) => (
-            <DiaCard 
-              data={section.title} 
-              jogos={section.data} 
-              userId={userId} 
-            />
+                <DiaCard 
+                  data={section.title} 
+                  jogos={section.data} 
+                  userId={userId} 
+                />
               )}
             />
           )}
         </>
-      ) : (
+      )}
+
+      {telaAtiva === "PALPITES" && (
         <Palpites userId={userId} />
+      )}
+
+      {telaAtiva === "HISTORICO" && (
+        <MeusPalpites userId={userId} />
       )}
 
       <TouchableOpacity 
@@ -192,7 +209,6 @@ const styles = StyleSheet.create({
     width: "90%",
     marginTop: 15,
     padding: 4,
-
     backgroundColor: "#0c1b2a",
     borderRadius: 8,
     borderWidth: 1,
@@ -209,7 +225,7 @@ const styles = StyleSheet.create({
   },
   abaTexto: {
     color: "#8fa3b8",
-    fontSize: 13,
+    fontSize: 12, // Um leve ajuste para caber perfeitamente em 3 colunas em qualquer tela
     fontWeight: "700",
   },
   abaTextoAtiva: {
@@ -219,7 +235,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "center",
-
     marginTop: 15,
     marginBottom: 10,
     paddingHorizontal: 10,
@@ -246,7 +261,6 @@ const styles = StyleSheet.create({
   },
   erro: {
     marginTop: 20,
-
     color: "red",
     fontSize: 16,
     fontWeight: "600",
@@ -254,10 +268,8 @@ const styles = StyleSheet.create({
   botaoSair: {
     width: "90%",
     alignSelf: "center",
-
     marginVertical: 15,
     padding: 12,
-
     backgroundColor: "#ff6b6b",
     borderRadius: 8,
     alignItems: "center",

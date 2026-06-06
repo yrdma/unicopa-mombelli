@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react"
 import { StyleSheet, Text, View, TextInput, TouchableOpacity, ActivityIndicator, FlatList, SafeAreaView, Image, Modal, ScrollView } from "react-native"
-import { supabase } from "../utils/supabase"
+import { supabase } from "../utils/supabase.js"
 import { formatarData } from "../utils/DateFormat.js"
-import { TEAM_FLAGS } from "../utils/flagMapping"
+import { TEAM_FLAGS } from "../utils/flagMapping.js"
 
 export default function Palpites({ userId }) {
     const [jogos, setJogos] = useState([])
